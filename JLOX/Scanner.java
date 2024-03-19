@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;//for storing tokens
 import java.util.Map;
 
-Class Scanner{
+class Scanner{
     private final String source;
     private final List<Token> tokens = new ArrayList<>();//we scan all the tokens at once i guess
 
@@ -19,8 +19,28 @@ Class Scanner{
         this.source = source;
     }//constructor
 
+    private static final Map<String, TokenType> keywords;
 
-
+  static {
+    keywords = new HashMap<>();
+    keywords.put("and",    AND);
+    keywords.put("class",  CLASS);
+    keywords.put("else",   ELSE);
+    keywords.put("false",  FALSE);
+    keywords.put("for",    FOR);
+    keywords.put("fun",    FUN);
+    keywords.put("if",     IF);
+    keywords.put("nil",    NIL);
+    keywords.put("or",     OR);
+    keywords.put("print",  PRINT);
+    keywords.put("return", RETURN);
+    keywords.put("super",  SUPER);
+    keywords.put("this",   THIS);
+    keywords.put("true",   TRUE);
+    keywords.put("var",    VAR);
+    keywords.put("while",  WHILE);
+  }//hashmap for reserved words
+    //we handle booleans and nil as keywords
     List<Token> ScanTokens(){
         while(!isAtEnd()){
             start = current;
@@ -48,8 +68,14 @@ Class Scanner{
             case '<' : addToken(match('=') ? LESS_EQUAL : LESS); break;
             case '>' : addToken(match('=') ? GREATER_EQUAL : GREATER); break;
             case '^' : addToken(match('=') ? POWER_EQUAL : POWER); break;
-            case '/' : 
-                        if(match('/')){ //in case of comment advance till new line
+            case '/' :  
+                        if(match('*')){ //in case of block comment advance till end of comment
+                            while((peek()!='*'&&peekNext()!='/')&&!isAtEnd()){
+                                if(peek()=='\n') line++;
+                                advance();
+                            }
+                        }
+                        else if(match('/')){ //in case of comment advance till new line
                             while(peek() != '\n' && !isAtEnd()) advance();
                         }
                         else{ // else emit the divison token
@@ -111,17 +137,19 @@ Class Scanner{
         return c<='z'&&c>='a'||c<='Z'&&c>='A'||c=='_';
     }
 
-    private isAlphaNumeric(char c){
+    private void isAlphaNumeric(char c){
         return isAlpha(c)||isDigit(c);
     }
 
     private void addToken(TokenType type){
         addToken(type,null);
     }//adds a token with no literal
+
     private void addToken(TokenType type,Object literal){
         String text = source.subtring(start,current);//the actual lexeme
         tokens.add(new Token(type,text,literal,line));
     }
+
     private void string(){
         while(peek()!='"'&&!isAtEnd()){
             if(peek()=='\n') line++;
@@ -148,7 +176,7 @@ Class Scanner{
     private void identifier(){
         while(isAlphaNumeric(peek()))advance();
         String text = source.substring(start,current);
-        TokenType type = keywords.get(text);
+        TokenType type = keywords.get(text); // in case reserved word used
         if(type==null) type = IDENTIFIER;
         addToken(type);
     }
