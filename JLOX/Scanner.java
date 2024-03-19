@@ -112,7 +112,7 @@ class Scanner{
         return source.charAt(current-1);
     }//advnaces by one character
 
-    private bool match(char expected){
+    private boolean match(char expected){
         if(isAtEnd()) return false;
         if(source.charAt(current)!=expected) return false;
         current++;//so we dont scan the token twice 
@@ -137,7 +137,7 @@ class Scanner{
         return c<='z'&&c>='a'||c<='Z'&&c>='A'||c=='_';
     }
 
-    private void isAlphaNumeric(char c){
+    private boolean isAlphaNumeric(char c){
         return isAlpha(c)||isDigit(c);
     }
 
@@ -146,7 +146,7 @@ class Scanner{
     }//adds a token with no literal
 
     private void addToken(TokenType type,Object literal){
-        String text = source.subtring(start,current);//the actual lexeme
+        String text = source.substring(start,current);//the actual lexeme
         tokens.add(new Token(type,text,literal,line));
     }
 
@@ -170,7 +170,7 @@ class Scanner{
             advance();//consume the '.'
             while(isDigit(peek()))advance();
         }
-        addtoken(NUMBER,Double.parseDouble(source.substring(start,current)));
+        addToken(NUMBER,Double.parseDouble(source.substring(start,current)));
     }
     
     private void identifier(){

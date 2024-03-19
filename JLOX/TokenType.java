@@ -2,7 +2,7 @@ package jlox;
 
 enum TokenType{
     //single-character tokens
-    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE,RIGHT_BRACE,COMMA,DOT,MINSUS,PLUS,SEMICOLON,SLASH,STAR,POWER,
+    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE,RIGHT_BRACE,COMMA,DOT,MINUS,PLUS,SEMICOLON,SLASH,STAR,POWER,
     //i added a power token for '^' . one of the first changes i am adding to the language
 
     //one or two character tokens
