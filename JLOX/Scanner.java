@@ -48,7 +48,32 @@ Class Scanner{
             case '<' : addToken(match('=') ? LESS_EQUAL : LESS); break;
             case '>' : addToken(match('=') ? GREATER_EQUAL : GREATER); break;
             case '^' : addToken(match('=') ? POWER_EQUAL : POWER); break;
-            default : break; // todo : add error handling
+            case '/' : 
+                        if(match('/')){ //in case of comment advance till new line
+                            while(peek() != '\n' && !isAtEnd()) advance();
+                        }
+                        else{ // else emit the divison token
+                            addToken(SLASH);
+                        }
+                        break;
+
+            case ' ' : case '\r' : case '\t' : break;//ignore whitespace
+
+            case '\n' : line++; break;//increment line number
+
+            //now time for string literals
+            case '"' : string(); break; 
+            default : 
+                if(isDigit(c)){
+                    number();
+                }
+                else if(isAlpha(c)){
+                    identifier();
+                }
+                else{
+                    break;
+                    //todo : error handling
+                }
         }
     }
 
@@ -73,6 +98,23 @@ Class Scanner{
         return source.charAt(current);//remember from advance() that current character is at current-1 
     }//like advance() and match() but does not increase current offset 
 
+    private char peekNext(){
+        if(current+1>=source.length()) return '\0';
+        return source.charAt(current+1);
+    }
+
+    private boolean isDigit(char c){
+        return (c<='9'&&c>='0');
+    }//we could use Character.isDigit() but that allows funny stuff like devnagri digits
+
+    private boolean isAlpha(char c){
+        return c<='z'&&c>='a'||c<='Z'&&c>='A'||c=='_';
+    }
+
+    private isAlphaNumeric(char c){
+        return isAlpha(c)||isDigit(c);
+    }
+
     private void addToken(TokenType type){
         addToken(type,null);
     }//adds a token with no literal
@@ -80,5 +122,36 @@ Class Scanner{
         String text = source.subtring(start,current);//the actual lexeme
         tokens.add(new Token(type,text,literal,line));
     }
+    private void string(){
+        while(peek()!='"'&&!isAtEnd()){
+            if(peek()=='\n') line++;
+            advance();
+        }
+        if(isAtEnd()){
+            //todo : error handling
+            return;
+        }
+        advance();//consume the closing quote
+        String value = source.substring(start+1,current-1);
+        addToken(STRING,value);//add token for string literal
+    }
+    //jlox supports multiline strings . 
+    private void number(){
+        while(isDigit(peek()))advance();
+        if(peek()=='.'&&isDigit(peekNext())){
+            advance();//consume the '.'
+            while(isDigit(peek()))advance();
+        }
+        addtoken(NUMBER,Double.parseDouble(source.substring(start,current)));
+    }
+    
+    private void identifier(){
+        while(isAlphaNumeric(peek()))advance();
+        String text = source.substring(start,current);
+        TokenType type = keywords.get(text);
+        if(type==null) type = IDENTIFIER;
+        addToken(type);
+    }
+
 }
 
