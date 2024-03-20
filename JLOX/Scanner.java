@@ -69,13 +69,7 @@ class Scanner{
             case '^' : addToken(match('=') ? POWER_EQUAL : POWER); break;
             case '/' :  
                         if(match('*')){ //in case of block comment advance till end of comment
-                            while(!(peek()=='*'&&peekNext()=='/')&&!isAtEnd()){
-                                if(peek()=='\n') line++;
-                                advance();
-                            }
-                            if(!isAtEnd()){
-                                advance();advance();//consume the */
-                            }
+                            block_comment();
                         }
                         else if(match('/')){ //in case of comment advance till new line
                             while(peek() != '\n' && !isAtEnd()) advance();
@@ -151,6 +145,26 @@ class Scanner{
         String text = source.substring(start,current);//the actual lexeme
         tokens.add(new Token(type,text,literal,line));
     }
+
+    private void block_comment(){
+        while(!(peek()=='*'&&peekNext()=='/')&&!isAtEnd())
+        {       
+                if(peek()=='\n') {
+                    line++;
+                }
+                if(peek()=='/'&&peekNext()=='*'){
+                    advance();advance();//consume /*
+                    block_comment();
+                }
+                else{
+                    advance();
+                }
+        }
+
+        if(!isAtEnd()){
+            advance();advance();//consume the */
+                      }
+    }//recursive function for nested block comments
 
     private void string(){
         while(peek()!='"'&&!isAtEnd()){
