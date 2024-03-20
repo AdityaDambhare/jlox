@@ -100,7 +100,7 @@ class Scanner{
                 }
                 else{
                     break;
-                    //todo : error handling
+                    Lox.error("invalid/unexpected character",line);
                 }
         }
     }
@@ -158,7 +158,7 @@ class Scanner{
             advance();
         }
         if(isAtEnd()){
-            //todo : error handling
+            Lox.error(line,"unterminated string");
             return;
         }
         advance();//consume the closing quote
