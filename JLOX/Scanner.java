@@ -85,7 +85,7 @@ class Scanner{
                         }
                         break;
 
-            case ' ' : case '\r' : case '\t' : break;//ignore whitespace
+            case ' ' : addToken(WHITESPACE);case '\r' : case '\t' : break;//ignore whitespace
 
             case '\n' : line++; break;//increment line number
 
@@ -99,8 +99,8 @@ class Scanner{
                     identifier();
                 }
                 else{
+                    Lox.error(line,"Invalid/Unexpected character");
                     break;
-                    Lox.error("invalid/unexpected character",line);
                 }
         }
     }
