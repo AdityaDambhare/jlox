@@ -79,9 +79,10 @@ class Scanner{
                         }
                         break;
 
-            case ' ' : addToken(WHITESPACE);case '\r' : case '\t' : break;//ignore whitespace
+            case ' ' : addToken(WHITESPACE);
+            case '\r': break;case '\t' : addToken(TAB);break;
 
-            case '\n' : line++; break;//increment line number
+            case '\n' : addToken(NEWLINE);line++; break;//increment line number
 
             //now time for string literals
             case '"' : string(); break; 
