@@ -1,5 +1,4 @@
 package jlox;
-
 import static jlox.TokenType.*;//static import to avoid writing TokenType every time.
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,9 +69,12 @@ class Scanner{
             case '^' : addToken(match('=') ? POWER_EQUAL : POWER); break;
             case '/' :  
                         if(match('*')){ //in case of block comment advance till end of comment
-                            while((peek()!='*'&&peekNext()!='/')&&!isAtEnd()){
+                            while(!(peek()=='*'&&peekNext()=='/')&&!isAtEnd()){
                                 if(peek()=='\n') line++;
                                 advance();
+                            }
+                            if(!isAtEnd()){
+                                advance();advance();//consume the */
                             }
                         }
                         else if(match('/')){ //in case of comment advance till new line

@@ -1,4 +1,4 @@
-JLOX/jlox.class
-JLOX/Scanner.class
-JLOX/TokenType.class
-JLOX/Token.class
+jlox/Lox.class
+jlox/Scanner.class
+jlox/TokenType.class
+jlox/Token.class
