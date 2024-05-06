@@ -1,4 +1,1 @@
-jlox/Lox.class
-jlox/Scanner.class
-jlox/TokenType.class
-jlox/Token.class
+jlox/*.class
