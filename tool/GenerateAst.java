@@ -40,9 +40,9 @@ public class GenerateAst{
 
     public static void defineType(PrintWriter writer,String baseName,String ClassName,String fieldList)
     {   //class definition
-        writer.println("static class " + ClassName + "extends" + baseName + "{");
+        writer.println("static class " + ClassName + " extends " + baseName + "{");
         //class constructor method
-        writer.println("    " + className + "(" + fieldList + ") {");
+        writer.println("    " + ClassName + "(" + fieldList + ") {");
         String[] fields = fieldList.split(", ");
 
         for (String field : fields) 
@@ -60,10 +60,19 @@ public class GenerateAst{
         writer.println("}");
         writer.println("}");
     }
+}
  /*
  the defineType() method will generate something like this :-
 
- 
+ static class Binary extends Expr{
+    Binary(Expr left, Token operator, Expr right){
+        this.left = left;
+        this.operator = operator;
+        this.right = right;
+    }
+    final Expr left;
+    final Token operator;
+    final Expr right;
+ }
  
  */
-}
