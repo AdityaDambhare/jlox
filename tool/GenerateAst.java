@@ -29,11 +29,18 @@ public class GenerateAst{
         writer.println("import java.util.List;");
         writer.println();
         writer.println("abstract class " + baseName + " {");
+        defineVisitor(writer,baseName,types);
+
         for(String type:types){
             String ClassName = type.split(":")[0].trim();
             String fields = type.split(":")[1].trim();
             defineType(writer,baseName,ClassName,fields);
+
         }
+
+        writer.println();
+        writer.println(" abstract <R> R accept(Visitor<R> visitor);");
+        //abstract accept method . to be over-ridden in subclasses
         writer.println("}");
         writer.close();
     }
@@ -56,8 +63,30 @@ public class GenerateAst{
         {
             writer.println("    final " + field + ";");
         }
+    
+        //over-riding the accept method for each type
+        writer.println();
+        writer.println("    @Override");
+        writer.println("    <R> R accept(Visitor<R> visitor) {");
+        writer.println("      return visitor.visit" +
+        ClassName + baseName + "(this);");
+        writer.println("    }");
 
         writer.println("}");
+        writer.println("}");
+    }
+
+    public static void defineVisitor(PrintWriter writer,String baseName,List<String> types)
+    {
+        writer.println(" interface Visitor<R> {");
+        for(String type:types){
+            String typename = type.split(":")[0].trim();
+            writer.println(
+                " R visit" + typename + baseName+"(" + typename + " " + baseName.toLowerCase() + ");" 
+            )
+            ;
+            //above code prints something like - R visit BinaryExpr(Binary expr);
+        }
         writer.println("}");
     }
 }
