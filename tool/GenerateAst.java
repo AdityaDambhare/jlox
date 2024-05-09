@@ -57,7 +57,8 @@ public class GenerateAst{
            String name = field.split(" ")[1];
            writer.println("      this." + name + " = " + name + ";");
         }
-
+        
+        writer.println(" }");
         //defining all fields
         for (String field : fields) 
         {
@@ -72,7 +73,7 @@ public class GenerateAst{
         ClassName + baseName + "(this);");
         writer.println("    }");
 
-        writer.println("}");
+        
         writer.println("}");
     }
 
