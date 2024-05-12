@@ -23,6 +23,7 @@ class Parser{
 
     private ParseError error(Token token,String message){
         Lox.error(token,message);
+        Lox.hadError = true;
         return new ParseError();
     }
 
@@ -96,9 +97,17 @@ class Parser{
 
 // the functions that appear first have the lowest precedence and vica verse
     private Expr expression(){
-        return equality();
+        return comma();
     }
-
+    private Expr comma(){
+        Expr expr =  equality();
+        while(match(COMMA)){
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr,operator,right);
+        }
+        return expr;
+    }
     //equality has lower precedence than comparison
     private Expr equality(){
         Expr expr = comparison();

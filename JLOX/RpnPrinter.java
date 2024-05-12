@@ -28,7 +28,7 @@ class RpnPrinter implements Expr.Visitor<String>
         System.out.println(new RpnPrinter().print(expression));
     }
     */
-   
+
     public String print(Expr expr){
         return expr.accept(this);
     }
@@ -53,7 +53,7 @@ class RpnPrinter implements Expr.Visitor<String>
 
     @Override
     public String visitUnaryExpr(Expr.Unary expr){
-        if(expr.operator.type == TokenType.MINUS){return expr.right.accept(this) + "!";}
+        if(expr.operator.type == TokenType.MINUS){return expr.right.accept(this) + " !";}
         //in case of negation print ! after expression .
         return expr.right.accept(this) + expr.operator.lexeme;
     }
