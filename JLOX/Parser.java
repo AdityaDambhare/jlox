@@ -99,15 +99,29 @@ class Parser{
     private Expr expression(){
         return comma();
     }
+
+
     private Expr comma(){
-        Expr expr =  equality();
+        Expr expr =  ternary();
         while(match(COMMA)){
             Token operator = previous();
-            Expr right = equality();
+            Expr right = ternary();
             expr = new Expr.Binary(expr,operator,right);
         }
         return expr;
     }
+//we will express ternary expression such as a?b:c in rpn like this :- a? b c :
+    private Expr ternary(){
+        Expr expr = equality();
+        if(match(QUESTION)){
+            Expr if_branch = ternary();
+            consume(COLON,"Expect ':' after ?[expression] ");
+            Expr else_branch = ternary();
+            expr = new Expr.Ternary(expr,if_branch,else_branch);
+        }
+        return expr;
+    }
+
     //equality has lower precedence than comparison
     private Expr equality(){
         Expr expr = comparison();

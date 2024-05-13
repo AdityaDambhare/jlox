@@ -58,4 +58,8 @@ class RpnPrinter implements Expr.Visitor<String>
         return expr.right.accept(this) + expr.operator.lexeme;
     }
 
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr){
+        return expr.condition.accept(this) + " ? " + expr.if_branch.accept(this) + " "+expr.else_branch.accept(this) + " : ";
+    }
 }
