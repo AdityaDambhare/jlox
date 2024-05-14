@@ -9,7 +9,9 @@ import java.util.List;
 
 public class Lox{
     static boolean hadError = false;
+    static Interpreter interpreter;
     public static void main(String args[]) throws IOException{
+       interpreter = new Interpreter();
         if(args.length>1){
             System.out.println("Usage: jlox [script]");
             System.exit(64);
@@ -31,7 +33,6 @@ public class Lox{
     private static void runPrompt() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
-
     for (;;) { 
       System.out.print("> ");
       String line = reader.readLine();
@@ -52,6 +53,7 @@ public class Lox{
     Parser parser = new Parser(tokens);
     Expr expr = parser.parse();
     if(hadError) return;
+
     System.out.println(new RpnPrinter().print(expr));
   }
   static void error(Token token, String message) {
