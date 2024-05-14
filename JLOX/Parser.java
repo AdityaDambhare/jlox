@@ -202,6 +202,42 @@ class Parser{
             consume(RIGHT_PAREN,"Expected a ')' after expression");
             return new Expr.Grouping(expr);
         }
+        
+        if(match(BANG_EQUAL,EQUAL_EQUAL)){
+            error(previous(),"Left hand Operand Missing");
+            equality();
+            return null;
+        }
+        if(match(POWER)){
+            error(previous(),"Left hand Operand Missing");
+            power();
+            return null;
+        }
+        if(match(QUESTION,COLON)){
+            error(previous(),"Missing left hand conditional");
+            ternary();
+            return null;
+        }
+
+        if(match(PLUS)){
+            error(previous(),"Missing left hand operand");
+            term();
+            return null;
+        }
+
+        if(match(SLASH,STAR)){
+            error(previous(),"Missing left hand operand");
+            factor();
+            return null;
+        }
+
+        if(match(GREATER,GREATER_EQUAL,LESS,LESS_EQUAL)){
+            error(previous(),"Missing left hand operand");
+            comparison();
+            return null;
+        }
+
+        
         throw error(peek(),"Expect expression");
     }
 
