@@ -47,6 +47,7 @@ class RpnPrinter implements Expr.Visitor<String>
 
     @Override
     public String visitLiteralExpr(Expr.Literal expr){
+        if(expr.value == null){return "nil";}
         return expr.value.toString();
         //print literal value
     }
