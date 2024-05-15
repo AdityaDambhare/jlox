@@ -46,6 +46,9 @@ class Interpreter implements Expr.Visitor<Object>{
         
         switch(expr.operator.type){
 
+            case COMMA:
+            return right;
+
             case MINUS : 
             checkNumberOperand(expr.operator,left,right);
             return (double)left - (double)right;
