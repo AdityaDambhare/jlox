@@ -55,6 +55,9 @@ public class Lox{
     if(hadError) return;
 
     System.out.println(new RpnPrinter().print(expr));
+
+    System.out.println("_______________\nevaluated expression ");
+    System.out.println(interpreter.interpret(expr));
   }
   static void error(Token token, String message) {
     if(token.type == TokenType.EOF){

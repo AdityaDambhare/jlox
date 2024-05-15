@@ -87,8 +87,10 @@ class Interpreter implements Expr.Visitor<Object>{
     private boolean isTruthy(Object object) {
     if (object == null) return false;
     if (object instanceof Boolean) return (boolean)object;
+    if (object instanceof Double && (double)object==0){return false;}
     return true;
     }
+
 
     private boolean isEqual(Object a, Object b) {
     if (a == null && b == null) return true;
