@@ -58,6 +58,9 @@ class Interpreter implements Expr.Visitor<Object>{
             return (double)left * (double)right;
             case SLASH :
             checkNumberOperand(expr.operator,left,right);
+            if((double)right == 0){
+                throw new RunTimeError(expr.operator,"cannot divide number by zero");
+            }
             return (double)left / (double)right;
 
             case POWER:
@@ -68,8 +71,8 @@ class Interpreter implements Expr.Visitor<Object>{
             if(left instanceof Double && right instanceof Double ){
                 return (double) left + (double) right;
             }
-            else if(left instanceof String && right instanceof String){
-                return (String) left + (String) right;
+            else if(left instanceof String || right instanceof String){
+                return stringify(left) + stringify(right);
             }
             throw new RunTimeError(expr.operator,"Operands must be both number or both strings");
             
