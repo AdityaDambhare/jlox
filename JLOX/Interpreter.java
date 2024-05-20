@@ -1,16 +1,37 @@
 package jlox;
+import java.util.List;
 import java.lang.Math;
-class Interpreter implements Expr.Visitor<Object>{
-    void interpret(Expr expr){
+class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statements produce no value unlike expressions
+    void interpret(List<Stmt> statements){
         try{
-            Object value = evaluate(expr);
-            System.out.println(stringify(value));//convert object to string
-            
+            for(Stmt statement : statements){
+                execute(statement);
+            }
         }
         catch(RunTimeError error){
             Lox.runtimeError(error);//print error but don't close the shell
         }
     }
+
+    private void execute(Stmt statement){
+        statement.accept(this);
+    }
+    //visitExpressionStmt and vistPrintStmt retun Void which is a wrapper for void . 
+    //we use Void because void cannot be passed as a  generic argument for some reason
+    
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt){
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt){
+        Object print_value = evaluate(stmt.expression);
+        System.out.println(stringify(print_value));
+        return null;
+    }
+
     private Object evaluate(Expr expr){
         return expr.accept(this); 
     }

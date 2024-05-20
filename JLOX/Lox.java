@@ -53,15 +53,13 @@ public class Lox{
       System.out.println(token);
     }
 
-    System.out.println("_______________\nAbstract syntax tree converted to reverse polish notation ");
+   // System.out.println("_______________\nAbstract syntax tree converted to reverse polish notation ");
     Parser parser = new Parser(tokens);
-    Expr expr = parser.parse();
+    List<Stmt> statements = parser.parse();
     if(hadError) return;
-
-    System.out.println(new RpnPrinter().print(expr));
-
-    System.out.println("_______________\nevaluated expression ");
-    interpreter.interpret(expr);
+    //System.out.println(new RpnPrinter().print(expr));
+   // System.out.println("_______________\nevaluated expression ");
+    interpreter.interpret(statements);
   }
 
   static void error(Token token, String message) {

@@ -1,8 +1,38 @@
 package jlox;
+import java.util.ArrayList;
 import java.util.List;
 import static jlox.TokenType.*;
-//this is a recursive descent parser . we start from the base expression and make our way to the "leaves" of the ast . 
-//the "leaves" are expression of highest precedence 
+
+/* 
+
+this is a recursive descent parser . we start from the base expression and make our way to the "leaves" of the ast . 
+the "leaves" are expression of highest precedence 
+
+
+lemme write the grammer for Lox real quick
+
+program -> statement* ;
+statement -> printstatement|expresssionstatement;
+printstatement -> "print" expr ";" ;
+expressionstatement -> expr ";" ;
+expr -> comma;
+comma-> ternary ("," ternary)*;
+ternary -> equality ("?" ternary ":" ternary)* ;
+equality -> comparison (("!="||"==") comparison)*;
+comparison -> term  ( (">"|"<"|"<="|">=") term )*;
+term -> factor (("+"|"-") factor)*;
+factor -> power (("*"|"/") power )*;
+power -> unary ("^" unary)*;
+unary -> ("!"|"-")* primary;
+primary-> "true" | "false" | "nil" | "this" | NUMBER | STRING | IDENTIFIER | "(" expr ")" //also known as grouping ;
+NUMBER -> DIGIT+ ("."  DIGIT+)?   
+STRING -> "\"" (any char except "/"")* "\"";
+IDENTIFIER -> ALPHA (ALPHA|DIGIT)*;
+ALPHA -> 'a'.....'z'|'A'......'Z'|'_';
+DIGIT -> '0'......'9';
+
+*/
+
 class Parser{
     static class ParseError extends RuntimeException{}
     private final List<Token> tokens;
@@ -12,13 +42,17 @@ class Parser{
         this.tokens = tokens;
     }
 
-    Expr parse(){
-        try{
-            return  expression();
+    List<Stmt> parse(){
+        List<Stmt> statements = new ArrayList<>();
+        while(!isAtEnd()){
+            try{
+            statements.add(statement());
+            }
+            catch(ParseError ERR){
+                synchronize();
+            }
         }
-        catch(ParseError error){
-            return null;
-        }
+        return statements;
     }
 
     private ParseError error(Token token,String message){
@@ -96,6 +130,22 @@ class Parser{
 
 
 // the functions that appear first have the lowest precedence and vica verse
+    private Stmt statement(){
+        if(match(PRINT)){
+            return print_statement();
+        }
+        return expression_statement();
+    }
+    private Stmt print_statement(){
+        Expr value = expression();
+        consume(SEMICOLON,"Expect ; after statement");
+        return new Stmt.Print(value);
+    }
+    private Stmt expression_statement(){
+        Expr expression  = expression();
+        consume(SEMICOLON,"Expect ; after statement");
+        return new Stmt.Expression(expression);
+    }
     private Expr expression(){
         return comma();
     }
