@@ -1,0 +1,5 @@
+package jlox;
+
+class NULL{
+    
+}
