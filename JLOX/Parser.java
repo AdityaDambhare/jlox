@@ -45,12 +45,7 @@ class Parser{
     List<Stmt> parse(){
         List<Stmt> statements = new ArrayList<>();
         while(!isAtEnd()){
-            try{
-            statements.add(statement());
-            }
-            catch(ParseError ERR){
-                synchronize();
-            }
+            statements.add(declaration());
         }
         return statements;
     }
@@ -130,26 +125,72 @@ class Parser{
 
 
 // the functions that appear first have the lowest precedence and vica verse
+    private Stmt declaration(){
+        try
+        {
+
+        if(match(VAR)){
+            return var_declaration();
+        }
+        return statement();
+
+        }
+        catch(ParseError error){
+            synchronize();
+            return null;
+        }
+    }
+
+    private Stmt var_declaration(){
+        Token name = consume(IDENTIFIER,"Expect variable name");
+
+        Expr initializer = null;
+        if(match(EQUAL)){
+            initializer = expression();
+        }
+
+        consume(SEMICOLON,"Expect ; after variable declaration");
+        return new Stmt.Var(name,initializer);
+    }
+
     private Stmt statement(){
         if(match(PRINT)){
             return print_statement();
         }
         return expression_statement();
     }
+
     private Stmt print_statement(){
         Expr value = expression();
         consume(SEMICOLON,"Expect ; after statement");
         return new Stmt.Print(value);
     }
+
     private Stmt expression_statement(){
         Expr expression  = expression();
         consume(SEMICOLON,"Expect ; after statement");
         return new Stmt.Expression(expression);
     }
+
     private Expr expression(){
-        return comma();
+        return assignment();
     }
 
+    private Expr assignment(){
+        Expr expr = comma();
+
+        if(match(EQUAL)){
+            Token equals = previous();
+            Expr value = assignment();
+            if(expr instanceof Expr.Variable){
+                Token name = ((Expr.Variable) expr).identifier;
+                return new Expr.Assign(name,value);
+            }
+            error(equals,"Invalid Assignment target");
+        }
+
+        return expr;
+    }
 
     private Expr comma(){
         Expr expr =  ternary();
@@ -242,7 +283,7 @@ class Parser{
         if(match(FALSE)) return new Expr.Literal(false);
         if(match(TRUE)) return new Expr.Literal(true);
         if(match(NIL))  return new Expr.Literal(null);
-
+        if(match(IDENTIFIER)) return new Expr.Variable(previous());
         if(match(NUMBER,STRING)){
             return new Expr.Literal(previous().literal);
         }

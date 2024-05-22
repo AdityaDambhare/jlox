@@ -48,15 +48,13 @@ public class Lox{
     private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.ScanTokens();
-    System.out.println("SCANNED TOKENS");
-    for (Token token : tokens) {
-      System.out.println(token);
-    }
-
    // System.out.println("_______________\nAbstract syntax tree converted to reverse polish notation ");
     Parser parser = new Parser(tokens);
     List<Stmt> statements = parser.parse();
     if(hadError) return;
+     for (Token token : tokens) {
+      System.out.println(token);
+    }
     //System.out.println(new RpnPrinter().print(expr));
    // System.out.println("_______________\nevaluated expression ");
     interpreter.interpret(statements);

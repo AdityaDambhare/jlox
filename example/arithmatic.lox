@@ -1,5 +1,19 @@
-1+2
-+
-5+5
-+
-5/(1)
+print (1+1?(1?(5^5/3^3):1):(1)),1?2:1; //will print 1
+print (nil),
+      ("gayporn"),
+      (
+        1+5==5+1?
+        5^5/5^5*3
+        :
+        4
+      );
+//will print 3
+print 1+5==5+1;
+/*
+block comment hehe
+/*
+nested block comment hehe
+// comment inside nested bloc comment hehe
+*/
+*/
+print "comment";

@@ -9,6 +9,8 @@ abstract class Expr {
  R visitLiteralExpr(Literal expr);
  R visitUnaryExpr(Unary expr);
  R visitTernaryExpr(Ternary expr);
+ R visitVariableExpr(Variable expr);
+ R visitAssignExpr(Assign expr);
 }
 static class Binary extends Expr{
     Binary(Expr left, Token operator, Expr right) {
@@ -73,6 +75,30 @@ static class Ternary extends Expr{
     @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitTernaryExpr(this);
+    }
+}
+static class Variable extends Expr{
+    Variable(Token identifier) {
+      this.identifier = identifier;
+ }
+    final Token identifier;
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVariableExpr(this);
+    }
+}
+static class Assign extends Expr{
+    Assign(Token name, Expr value) {
+      this.name = name;
+      this.value = value;
+ }
+    final Token name;
+    final Expr value;
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitAssignExpr(this);
     }
 }
 

@@ -2,6 +2,7 @@ package jlox;
 import java.util.List;
 import java.lang.Math;
 class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statements produce no value unlike expressions
+    private Environment environment = new Environment();
     void interpret(List<Stmt> statements){
         try{
             for(Stmt statement : statements){
@@ -19,6 +20,24 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
     //visitExpressionStmt and vistPrintStmt retun Void which is a wrapper for void . 
     //we use Void because void cannot be passed as a  generic argument for some reason
     
+    
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt){
+        Object value = null;
+        if(stmt.initializer != null){
+            value = evaluate(stmt.initializer);
+        }
+        environment.define(stmt.name.lexeme,value);
+        return null;
+    }
+
+    @Override
+    public Object visitAssignExpr(Expr.Assign expr){
+        Object value  = evaluate(expr.value);
+        environment.assign(expr.name,value);
+        return value;
+    }
+
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt){
         evaluate(stmt.expression);
@@ -59,7 +78,14 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         }
         return null;
     }
-    
+
+
+
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr){
+        return environment.get(expr.identifier);
+    }
+
     @Override
     public Object visitBinaryExpr(Expr.Binary expr){
         Object right = evaluate(expr.right);
