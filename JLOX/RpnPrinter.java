@@ -47,7 +47,7 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
         if(stmt.initializer == null){
             return "Var " + stmt.name.lexeme + " ;"; 
         }
-        return "Var " + stmt.name.lexeme + " " + stmt.initializer.accept(this) + " = ;";
+        return   stmt.initializer.accept(this) + " " + "(Var "+stmt.name.lexeme + ") = ;";
     }
 
     @Override
@@ -77,7 +77,7 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
 
     @Override
     public String visitAssignExpr(Expr.Assign expr){
-        return expr.name.lexeme + " " + expr.value.accept(this) + " = ";
+        return  expr.value.accept(this)+ " " + expr.name.lexeme + " = ";
     }
 
     @Override

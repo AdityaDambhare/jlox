@@ -1,9 +1,56 @@
 package jlox;
+import java.util.List;
 
-class AstPrinter implements Expr.Visitor<String>
+class AstPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
 {
     public String print(Expr expr){
         return expr.accept(this);
+    }
+
+    public String print(List<Stmt> statements){
+        StringBuilder builder = new StringBuilder();
+        for(Stmt statement:statements){
+            builder.append(statement.accept(this) + "\n");
+        }
+        return builder.toString();
+    }
+
+    @Override
+    public String visitExpressionStmt(Stmt.Expression stmt)
+    {
+        return "( " + stmt.expression.accept(this) + " ;)";
+    }
+
+    @Override
+    public String visitPrintStmt(Stmt.Print stmt){
+        return "( print " + stmt.expression.accept(this) + " ;)";
+    }
+
+    @Override
+    public String visitBlockStmt(Stmt.Block stmt){
+        StringBuilder builder = new StringBuilder();
+        for(Stmt statement:stmt.statements){
+            builder.append(statement.accept(this)+"\n");
+        }
+        return builder.toString();
+    }
+
+    @Override
+    public String visitVarStmt(Stmt.Var stmt){
+        if(stmt.initializer==null){
+            return "( var " + stmt.name.lexeme + " ;)";
+        }
+        return "( = (var "+ stmt.name.lexeme + ") " + stmt.initializer.accept(this) + " ;)";
+    }
+
+    @Override
+    public String visitAssignExpr(Expr.Assign expr){
+        return "( = "+expr.name.lexeme  + expr.value.accept(this) + " ;)";
+    }
+
+    @Override
+    public String visitVariableExpr(Expr.Variable expr){
+        return expr.identifier.lexeme;
     }
 
     @Override
@@ -29,7 +76,7 @@ class AstPrinter implements Expr.Visitor<String>
 
     @Override
     public String visitTernaryExpr(Expr.Ternary expr){
-        return "? "+expr.condition+" "+Parenthisize(":",if_branch,else_branch); 
+        return "( ? "+expr.condition.accept(this)+" "+Parenthisize(":",expr.if_branch,expr.else_branch) + " )"; 
     }
 
     private String Parenthisize(String name,Expr... exprs){

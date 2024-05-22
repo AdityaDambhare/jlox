@@ -51,17 +51,18 @@ public class Lox{
 
       Parser parser = new Parser(tokens);
       Object syntax = parser.ParseRepl();
-      RpnPrinter printer = new RpnPrinter();
       
       if (hadError) continue;
 
       if (syntax instanceof List) {
-      System.out.println(printer.print((List<Stmt>)syntax));
+      System.out.println(new RpnPrinter().print((List<Stmt>)syntax));
+      System.out.println(new AstPrinter().print((List<Stmt>)syntax));
       interpreter.interpret((List<Stmt>)syntax);
       } 
       else if (syntax instanceof Expr) 
       {
-      System.out.println(printer.print((Expr)syntax));
+      System.out.println(new RpnPrinter().print((Expr)syntax));
+      System.out.println(new AstPrinter().print((Expr)syntax));
       String result = interpreter.interpret((Expr)syntax);
       if (result != null) {
         System.out.println("= " + result);
@@ -86,6 +87,7 @@ public class Lox{
 
     if(hadError) return;
     System.out.println(new RpnPrinter().print(statements));
+    System.out.println(new AstPrinter().print(statements));
     interpreter.interpret(statements);
   }
 
