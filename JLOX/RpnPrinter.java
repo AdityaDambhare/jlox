@@ -44,7 +44,10 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
 
     @Override
     public String visitVarStmt(Stmt.Var stmt){
-        return "Var" + stmt.name.lexeme + " " + stmt.initializer==null?"":stmt.initializer.accept(this) + " = ;";
+        if(stmt.initializer == null){
+            return "Var " + stmt.name.lexeme + " ;"; 
+        }
+        return "Var " + stmt.name.lexeme + " " + stmt.initializer.accept(this) + " = ;";
     }
 
     @Override
@@ -69,7 +72,7 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
 
     @Override
     public String visitVariableExpr(Expr.Variable expr){
-        return expr.identifier.lexeme ;
+        return expr.identifier.lexeme;
     }
 
     @Override
