@@ -3,6 +3,7 @@ import java.util.List;
 import java.lang.Math;
 class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statements produce no value unlike expressions
     private Environment environment = new Environment();
+
     void interpret(List<Stmt> statements){
         try{
             for(Stmt statement : statements){
@@ -14,9 +15,25 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         }
     }
 
+    String interpret(Expr expr){
+        try{
+            Object value = evaluate(expr);
+            return stringify(value);   
+        }
+        catch(RunTimeError error){
+            Lox.runtimeError(error);
+            return null;
+        }
+    }
+
     private void execute(Stmt statement){
         statement.accept(this);
     }
+
+    private Object evaluate(Expr expr){
+        return expr.accept(this); 
+    }
+
     //visitExpressionStmt and vistPrintStmt retun Void which is a wrapper for void . 
     //we use Void because void cannot be passed as a  generic argument for some reason
 
@@ -36,10 +53,11 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
     
     @Override
     public Void visitVarStmt(Stmt.Var stmt){
-        Object value = null;
+        Object value =  null;
         if(stmt.initializer != null){
             value = evaluate(stmt.initializer);
         }
+        value = value==null? new NULL() : value;
         environment.define(stmt.name.lexeme,value);
         return null;
     }
@@ -70,9 +88,6 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         return null;
     }
 
-    private Object evaluate(Expr expr){
-        return expr.accept(this); 
-    }
     @Override
     public Object visitLiteralExpr(Expr.Literal literal){
         return literal.value;

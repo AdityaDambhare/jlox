@@ -53,6 +53,21 @@ class Parser{
         return statements;
     }
 
+    Object ParseRepl(){
+        Lox.allowedExpression = true;
+        List<Stmt> statements = new ArrayList<>();
+        while(!isAtEnd()){
+            statements.add(declaration());
+            if(Lox.foundExpression){
+                Stmt last = statements.get(statements.size()-1);
+                Lox.foundExpression = false;
+                return ((Stmt.Expression) last).expression;
+            }
+            Lox.allowedExpression = false;
+        }
+        return statements;
+    }
+
     private ParseError error(Token token,String message){
         Lox.error(token,message);
         Lox.hadError = true;
@@ -183,7 +198,12 @@ class Parser{
 
     private Stmt expression_statement(){
         Expr expression  = expression();
+        if(Lox.allowedExpression && isAtEnd()){
+            Lox.foundExpression = true;
+        }
+        else{
         consume(SEMICOLON,"Expect ; after statement");
+        }
         return new Stmt.Expression(expression);
     }
 

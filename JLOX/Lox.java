@@ -11,13 +11,19 @@ public class Lox{
     static boolean hadError = false;
     private static final Interpreter interpreter = new Interpreter();
     static boolean hadRuntimeError = false;
+
+    static boolean showsyntax = false;
+    static boolean showtokens = false;
+    static boolean allowedExpression;
+    static boolean foundExpression = false;
     public static void main(String args[]) throws IOException{
         if(args.length>1){
-            System.out.println("Usage: jlox [script]");
+            System.out.println("Usage: jlox [script] [flags]");
+            System.out.println("optional flags --showsyntax --showtokens");
             System.exit(64);
         }
-        else if(args.length == 1){
-            runFile(args[0]);
+        else if (args.length == 1){
+          runFile(args[0]);
         }
         else{
             runPrompt();
@@ -33,30 +39,51 @@ public class Lox{
     }
 
     private static void runPrompt() throws IOException {
+    
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
+    
     for (;;) { 
-      System.out.print("> ");
-      String line = reader.readLine();
-      if (line == null) break;
-      run(line);
       hadError = false;
-      hadRuntimeError = false;
-    }
+      System.out.print("> ");
+      Scanner scanner = new Scanner(reader.readLine());
+      List<Token> tokens = scanner.ScanTokens();
+
+      Parser parser = new Parser(tokens);
+      Object syntax = parser.ParseRepl();
+
+      // Ignore it if there was a syntax error.
+      if (hadError) continue;
+
+      if (syntax instanceof List) {
+      interpreter.interpret((List<Stmt>)syntax);
+      } 
+      else if (syntax instanceof Expr) 
+      {
+
+      String result = interpreter.interpret((Expr)syntax);
+      if (result != null) {
+        System.out.println("= " + result);
+      }
+
+      }
+  }
+  
   }
     
     private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.ScanTokens();
-   // System.out.println("_______________\nAbstract syntax tree converted to reverse polish notation ");
+   
+    for (Token token : tokens) {
+      if(!showtokens) break;
+      System.out.println(token);
+    }
+
     Parser parser = new Parser(tokens);
     List<Stmt> statements = parser.parse();
     if(hadError) return;
-     for (Token token : tokens) {
-      System.out.println(token);
-    }
-    //System.out.println(new RpnPrinter().print(expr));
-   // System.out.println("_______________\nevaluated expression ");
+    
     interpreter.interpret(statements);
   }
 
