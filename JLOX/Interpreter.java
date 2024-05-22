@@ -19,7 +19,20 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
     }
     //visitExpressionStmt and vistPrintStmt retun Void which is a wrapper for void . 
     //we use Void because void cannot be passed as a  generic argument for some reason
-    
+
+    //execute() and executeBlock() are not interface methods to be overridden so we can use normal void return type here
+    void executeBlock(List<Stmt> statements,Environment environment){
+        Environment enclosing = this.environment;
+        try{
+            this.environment = environment;
+            for(Stmt statement:statements){
+                execute(statement);
+            }
+        }
+        finally{
+            this.environment = enclosing;
+        }
+    }
     
     @Override
     public Void visitVarStmt(Stmt.Var stmt){
@@ -36,6 +49,12 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         Object value  = evaluate(expr.value);
         environment.assign(expr.name,value);
         return value;
+    }
+
+    @Override
+    public Void visitBlockStmt(Stmt.Block stmt){
+        executeBlock(stmt.statements,new Environment(this.environment));
+        return null;
     }
 
     @Override

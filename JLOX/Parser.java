@@ -11,8 +11,11 @@ the "leaves" are expression of highest precedence
 
 lemme write the grammer for Lox real quick
 
-program -> statement* ;
-statement -> printstatement|expresssionstatement;
+program -> declaration* ;
+declaration -> vardeclaration | statement;
+vardeclaration -> "var" IDENTIFIER ("=" expr)? ";" ;
+statement -> printstatement|expresssionstatement|block;
+block-> "{" declaration* "}";
 printstatement -> "print" expr ";" ;
 expressionstatement -> expr ";" ;
 expr -> comma;
@@ -157,7 +160,19 @@ class Parser{
         if(match(PRINT)){
             return print_statement();
         }
+        if(match(LEFT_BRACE)){
+            return new Stmt.Block(block());
+        }
         return expression_statement();
+    }
+
+    private List<Stmt> block(){
+        List<Stmt> statements = new ArrayList<>();
+        while(!check(RIGHT_BRACE) && !isAtEnd()){
+            statements.add(declaration());
+        }
+        consume(RIGHT_BRACE,"Expect } after block.");
+        return statements;
     }
 
     private Stmt print_statement(){
