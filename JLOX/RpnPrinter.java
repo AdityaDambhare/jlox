@@ -1,6 +1,7 @@
 package jlox;
+import java.util.List;
 //prints AST in reverse polish notations
-class RpnPrinter implements Expr.Visitor<String>
+class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
 { 
      /*
     public static void main(String[] args){
@@ -33,6 +34,49 @@ class RpnPrinter implements Expr.Visitor<String>
         return expr.accept(this);
     }
 
+    public String print(List<Stmt> statements){
+        String result = "";
+        for(Stmt statement:statements){
+            result += statement.accept(this) + "\n";
+        }
+        return result;
+    }
+
+    @Override
+    public String visitVarStmt(Stmt.Var stmt){
+        return "Var" + stmt.name.lexeme + " " + stmt.initializer==null?"":stmt.initializer.accept(this) + " = ;";
+    }
+
+    @Override
+    public String visitExpressionStmt(Stmt.Expression stmt){
+        return stmt.expression.accept(this) + " ;";
+    }
+
+    @Override
+    public String visitPrintStmt(Stmt.Print stmt){
+        return stmt.expression.accept(this) + " print ;";
+    }
+
+    @Override
+    public String visitBlockStmt(Stmt.Block stmt){
+        String block = "{";
+        for(Stmt statement:stmt.statements
+        ){
+            block += statement.accept(this);
+        }
+        return block + "}";
+    }
+
+    @Override
+    public String visitVariableExpr(Expr.Variable expr){
+        return expr.identifier.lexeme ;
+    }
+
+    @Override
+    public String visitAssignExpr(Expr.Assign expr){
+        return expr.name.lexeme + " " + expr.value.accept(this) + " = ";
+    }
+
     @Override
     public String visitBinaryExpr(Expr.Binary expr){
         return expr.left.accept(this) + " " + expr.right.accept(this) + " " + expr.operator.lexeme +" ";
@@ -48,6 +92,9 @@ class RpnPrinter implements Expr.Visitor<String>
     @Override
     public String visitLiteralExpr(Expr.Literal expr){
         if(expr.value == null){return "nil";}
+        if(expr.value instanceof String){
+            return "\"" + (String) expr.value + "\"";
+        }
         return expr.value.toString();
         //print literal value
     }
