@@ -1,5 +1,6 @@
 package jlox;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import static jlox.TokenType.*;
 
@@ -172,6 +173,15 @@ class Parser{
     }
 
     private Stmt statement(){
+        if(match(IF)){
+           return if_statement();
+        }
+        if(match(WHILE)){
+            return while_statement();
+        }
+        if(match(FOR)){
+            return for_statement();
+        }
         if(match(PRINT)){
             return print_statement();
         }
@@ -179,6 +189,72 @@ class Parser{
             return new Stmt.Block(block());
         }
         return expression_statement();
+    }
+
+    private Stmt if_statement(){
+            consume(LEFT_PAREN,"expect '(' after if statement");
+            Expr condition = expression();
+            consume(RIGHT_PAREN,"expect ')' after if statement expression");
+            Stmt then_branch = statement();
+            Stmt else_branch = null;
+            if(match(ELSE)){
+                else_branch = statement();
+            }
+            return new Stmt.If(condition,then_branch,else_branch);
+    }
+
+    private Stmt while_statement(){
+        consume(LEFT_PAREN,"Expect '(' after \"while\"");
+        Expr condition = expression();
+        consume(RIGHT_PAREN,"Expect ')' after expression");
+        Stmt statement = statement();
+        return new Stmt.While(condition,statement);
+    }
+
+    private Stmt for_statement(){
+        consume(LEFT_PAREN,"Expect '(' after \"for\" ");
+
+        Stmt initializer;
+        if(match(SEMICOLON)){
+            initializer = null;
+        }
+        else if(match(VAR)){
+            initializer = var_declaration();
+        }
+        else{
+            initializer  = expression_statement();
+        }
+        
+        Expr condition = null;
+        if(!check(SEMICOLON)){
+            condition = expression();
+        }
+        consume(SEMICOLON,"Expect ';' after loop condition");
+
+        Expr increment = null;
+        if(!check(SEMICOLON)){
+            increment = expression();
+        }
+        consume(RIGHT_PAREN,"Expect ')' after for clauses");
+
+        Stmt body = statement();
+
+        if(increment!=null){
+            body = new Stmt.Block(
+                Arrays.asList(
+                    body,
+                    new Stmt.Expression(increment)
+                )
+            );
+        }
+
+        if(condition==null) condition = new Expr.Literal(true);
+        body = new Stmt.While(condition,body);
+
+        if(initializer!=null){
+            body = new Stmt.Block(Arrays.asList(initializer,body));
+        }
+        return body;
     }
 
     private List<Stmt> block(){
@@ -216,7 +292,7 @@ class Parser{
 
         if(match(EQUAL)){
             Token equals = previous();
-            Expr value = assignment();
+            Expr value = comma();
             if(expr instanceof Expr.Variable){
                 Token name = ((Expr.Variable) expr).identifier;
                 return new Expr.Assign(name,value);
@@ -226,6 +302,8 @@ class Parser{
 
         return expr;
     }
+
+   
 
     private Expr comma(){
         Expr expr =  ternary();
@@ -238,7 +316,7 @@ class Parser{
     }
 //we will express ternary expression such as a?b:c in rpn like this :- a? b c :
     private Expr ternary(){
-        Expr expr = equality();
+        Expr expr = or();
         if(match(QUESTION)){
             Expr if_branch = ternary();
             consume(COLON,"Expect ':' after ?[expression] ");
@@ -248,6 +326,25 @@ class Parser{
         return expr;
     }
 
+    private Expr or(){
+        Expr expr = and();
+        while(match(OR)){
+            Token operator = previous();
+            Expr right = and();
+            expr = new Expr.Logical(expr,operator,right);
+        }
+        return expr;
+    }
+
+    private Expr and(){
+        Expr expr = equality();
+        while(match(AND)){
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Logical(expr,operator,right);
+        }
+        return expr;
+    }
     //equality has lower precedence than comparison
     private Expr equality(){
         Expr expr = comparison();

@@ -46,7 +46,11 @@ public class Lox{
     for (;;) { 
       hadError = false;
       System.out.print("> ");
-      Scanner scanner = new Scanner(reader.readLine());
+      String line = reader.readLine();
+      if(line==null){
+        break;
+      }
+      Scanner scanner = new Scanner(line);
       List<Token> tokens = scanner.ScanTokens();
 
       Parser parser = new Parser(tokens);

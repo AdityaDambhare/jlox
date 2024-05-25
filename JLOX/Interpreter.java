@@ -50,7 +50,25 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
             this.environment = enclosing;
         }
     }
-    
+    @Override
+    public Void visitIfStmt(Stmt.If stmt){
+        if(isTruthy(evaluate(stmt.condition))){
+            execute(stmt.then_branch);
+        }
+        else if (stmt.else_branch != null){
+            execute(stmt.else_branch);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStmt(Stmt.While stmt){
+        while(isTruthy(evaluate(stmt.condition))){
+            execute(stmt.statement);
+        }
+        return null;
+    }
+
     @Override
     public Void visitVarStmt(Stmt.Var stmt){
         Object value =  null;
@@ -92,7 +110,17 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
     public Object visitLiteralExpr(Expr.Literal literal){
         return literal.value;
     }
-
+    @Override
+    public Object visitLogicalExpr(Expr.Logical expr){
+        Object left  = evaluate(expr.left);
+        if(expr.operator.type == TokenType.OR){
+            if (isTruthy(left)) return left;
+        }
+        else{
+            if(!isTruthy(left)) return left;
+        }
+        return evaluate(expr.right);
+    }
     @Override
     public Object visitGroupingExpr(Expr.Grouping expr){
         return evaluate(expr.expression);

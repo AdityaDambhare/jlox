@@ -9,6 +9,8 @@ enum TokenType{
     BANG, BANG_EQUAL,EQUAL,EQUAL_EQUAL,GREATER,GREATER_EQUAL,LESS,LESS_EQUAL,PLUS_EQUAL,MINUS_EQUAL,STAR_EQUAL,SLASH_EQUAL,POWER_EQUAL,
     //Added +=, -=, *=, /=, and ^= as well . i am not sure if i should add the other ones like %=, &=, |=, etc. i will add them if i feel like it.
 
+    
+
     QUESTION,COLON ,//ternary operator
 
     //literals

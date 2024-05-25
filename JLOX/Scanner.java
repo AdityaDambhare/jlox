@@ -69,6 +69,8 @@ class Scanner{
             case '<' : addToken(match('=') ? LESS_EQUAL : LESS); break;
             case '>' : addToken(match('=') ? GREATER_EQUAL : GREATER); break;
             case '^' : addToken(match('=') ? POWER_EQUAL : POWER); break;
+            case '&' : if(match('&')){addToken(AND);break;}
+            case '|' : if(match('|')){addToken(OR);break;}
             case '/' :  
                         if(match('*')){ //in case of block comment advance till end of comment
                             block_comment();

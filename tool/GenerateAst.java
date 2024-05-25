@@ -19,9 +19,12 @@ public class GenerateAst{
       "Unary    : Token operator, Expr right",
       "Ternary  : Expr condition, Expr if_branch, Expr else_branch",
       "Variable : Token identifier",
-      "Assign   : Token name, Expr value"
+      "Assign   : Token name, Expr value",
+      "Logical  : Expr left, Token operator, Expr right"
     ));
        defineAst(outputDir,"Stmt",Arrays.asList(
+        "If : Expr condition , Stmt then_branch , Stmt else_branch",
+        "while : Expr condition, Stmt statement",
         "Expression : Expr expression",
         "Print : Expr expression",
         "Var : Token name, Expr initializer",

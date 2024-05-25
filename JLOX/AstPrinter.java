@@ -14,7 +14,15 @@ class AstPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
         }
         return builder.toString();
     }
-
+    @Override 
+    public String visitIfStmt(Stmt.If stmt){
+        String else_branch = (stmt.else_branch==null)?(""):(" else " + stmt.else_branch.accept(this));
+        return "(if " + stmt.condition.accept(this) + " " + stmt.then_branch.accept(this) + else_branch + " )";
+    }
+    @Override
+    public String visitWhileStmt(Stmt.While stmt){
+        return "( while " + "(" + stmt.condition.accept(this) + ") "  + stmt.statement.accept(this) + ")";
+    }
     @Override
     public String visitExpressionStmt(Stmt.Expression stmt)
     {
@@ -29,9 +37,11 @@ class AstPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
     @Override
     public String visitBlockStmt(Stmt.Block stmt){
         StringBuilder builder = new StringBuilder();
+        builder.append("{");
         for(Stmt statement:stmt.statements){
-            builder.append(statement.accept(this)+"\n");
+            builder.append(statement.accept(this));
         }
+        builder.append("}");
         return builder.toString();
     }
 
@@ -42,7 +52,10 @@ class AstPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
         }
         return "( = (var "+ stmt.name.lexeme + ") " + stmt.initializer.accept(this) + " ;)";
     }
-
+    @Override
+    public String visitLogicalExpr(Expr.Logical expr){
+        return "( " + expr.operator.lexeme + " " + expr.left.accept(this) + " " + expr.right.accept(this) + " )";
+    }
     @Override
     public String visitAssignExpr(Expr.Assign expr){
         return "( = "+expr.name.lexeme  + expr.value.accept(this) + " ;)";

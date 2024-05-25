@@ -41,7 +41,14 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
         }
         return result;
     }
-
+    @Override
+    public String visitIfStmt(Stmt.If stmt){
+        return "";
+    }
+    @Override
+    public String visitWhileStmt(Stmt.While stmt){
+        return stmt.statement.accept(this) + " (" + stmt.condition.accept(this) + ") while ";
+    }
     @Override
     public String visitVarStmt(Stmt.Var stmt){
         if(stmt.initializer == null){
@@ -69,7 +76,10 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
         }
         return block + "}";
     }
-
+    @Override
+    public String visitLogicalExpr(Expr.Logical expr){
+        return expr.left.accept(this) + " " + expr.right.accept(this) + " " + expr.operator.lexeme+" ";
+    }
     @Override
     public String visitVariableExpr(Expr.Variable expr){
         return expr.identifier.lexeme;
