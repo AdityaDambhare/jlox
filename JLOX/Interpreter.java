@@ -1,8 +1,55 @@
 package jlox;
 import java.util.List;
 import java.lang.Math;
+import java.util.ArrayList;
 class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statements produce no value unlike expressions
-    private Environment environment = new Environment();
+    final Environment globals = new Environment();
+    private Environment environment = globals;
+
+    Interpreter(){
+
+    globals.define
+    (
+     "clock", 
+      new LoxCallable() 
+    {
+      @Override
+      public int arity() { return 0; }
+
+      @Override
+      public Object call(Interpreter interpreter,
+                         List<Object> arguments) {
+        return (double)System.currentTimeMillis() / 1000.0;
+      }
+
+      @Override
+      public String toString() { return "<native fn>"; }
+    }
+    );
+
+
+    globals.define
+    (
+     "println", 
+      new LoxCallable() 
+    {
+      @Override
+      public int arity() { return 1; }
+
+      @Override
+      public Object call(Interpreter interpreter,
+                         List<Object> arguments) {
+        System.out.println(stringify(arguments.get(0)));
+        return null;
+      }
+
+      @Override
+      public String toString() { return "<native fn>"; }
+    }
+    
+    );
+
+    }
 
     void interpret(List<Stmt> statements){
         try{
@@ -37,17 +84,19 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
     //visitExpressionStmt and vistPrintStmt retun Void which is a wrapper for void . 
     //we use Void because void cannot be passed as a  generic argument for some reason
 
-    //execute() and executeBlock() are not interface methods to be overridden so we can use normal void return type here
+    
     void executeBlock(List<Stmt> statements,Environment environment){
         Environment enclosing = this.environment;
+        Object value;
         try{
             this.environment = environment;
             for(Stmt statement:statements){
-                execute(statement);
+               execute(statement);
             }
         }
         finally{
             this.environment = enclosing;
+            
         }
     }
     @Override
@@ -75,11 +124,24 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         if(stmt.initializer != null){
             value = evaluate(stmt.initializer);
         }
-        value = value==null? new NULL() : value;
+        else
+        {value = new NULL(); };
         environment.define(stmt.name.lexeme,value);
         return null;
     }
 
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt){
+        LoxFunction function = new LoxFunction(stmt,environment);
+        environment.define(stmt.name.lexeme,function);
+        return null;
+    }
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt){
+        Object value  = null;
+        if(stmt.value!=null) value = evaluate(stmt.value);
+        throw new Return(value);//we unwind all the way back to call() with this where we catch the exception and return the value 
+    }
     @Override
     public Object visitAssignExpr(Expr.Assign expr){
         Object value  = evaluate(expr.value);
@@ -98,6 +160,8 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         evaluate(stmt.expression);
         return null;
     }
+
+    
 
     @Override
     public Void visitPrintStmt(Stmt.Print stmt){
@@ -215,6 +279,29 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
             return evaluate(expr.else_branch);//if condtion results in false,nil or zero valued double the else_branch is evaluated
         }
     }
+
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr){
+        Object callee = evaluate(expr.callee);
+        List<Object> arguments = new ArrayList<>();
+        for(Expr argument:expr.arguments){
+            arguments.add(evaluate(argument));
+        }
+
+        if(!(callee instanceof LoxCallable )){
+            throw new RunTimeError(expr.paren,"Can only call function and classes");
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+
+        if(arguments.size() != function.arity()){
+            throw new RunTimeError(expr.paren,"Expected " + function.arity() +" arguments but got "+arguments.size());
+        }
+
+        return function.call(this,arguments);
+    }
+
     //helper methods
     
     //you may ask why use this helper method when you can directly print the object in System.out.println()

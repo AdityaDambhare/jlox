@@ -27,7 +27,9 @@ comparison -> term  ( (">"|"<"|"<="|">=") term )*;
 term -> factor (("+"|"-") factor)*;
 factor -> power (("*"|"/") power )*;
 power -> unary ("^" unary)*;
-unary -> ("!"|"-")* primary;
+unary -> ("!"|"-")* (primary | call);
+call -> primary ("arguments?")*;
+arguments -> expression ( "," expression)*;
 primary-> "true" | "false" | "nil" | "this" | NUMBER | STRING | IDENTIFIER | "(" expr ")" //also known as grouping ;
 NUMBER -> DIGIT+ ("."  DIGIT+)?   
 STRING -> "\"" (any char except "/"")* "\"";
@@ -151,9 +153,13 @@ class Parser{
         if(match(VAR)){
             return var_declaration();
         }
+        if(match(FUN)){
+            return function("function");
+        }
         return statement();
 
         }
+        
         catch(ParseError error){
             synchronize();
             return null;
@@ -172,6 +178,25 @@ class Parser{
         return new Stmt.Var(name,initializer);
     }
 
+    private Stmt.Function function(String kind){//weird parameter i know. 
+        Token name = consume(IDENTIFIER,"Expect "+kind+" name.");  
+        consume(LEFT_PAREN,"Expect \"(\" after "+kind+" name.");
+        List<Token> parameters = new ArrayList<>();
+        if(!check(RIGHT_PAREN)){
+            do{
+                if(parameters.size()>=255){
+                    error(peek(),"Can't have more than 255 parameters");
+                }
+                parameters.add(consume(IDENTIFIER,"Expect parameter name."));
+            }
+            while(match(COMMA));
+        }
+        consume(RIGHT_PAREN,"Expect \")\" after parameters.");
+        consume(LEFT_BRACE,"Expect \"{\" before "+kind+" body.");
+        List<Stmt> body = block();
+        return new Stmt.Function(name,parameters,body);
+    }
+
     private Stmt statement(){
         if(match(IF)){
            return if_statement();
@@ -188,8 +213,12 @@ class Parser{
         if(match(LEFT_BRACE)){
             return new Stmt.Block(block());
         }
+        if(match(RETURN)){
+            return return_statement();
+        }
         return expression_statement();
     }
+    
 
     private Stmt if_statement(){
             consume(LEFT_PAREN,"expect '(' after if statement");
@@ -255,6 +284,16 @@ class Parser{
             body = new Stmt.Block(Arrays.asList(initializer,body));
         }
         return body;
+    }
+
+    private Stmt return_statement(){
+        Token keyword = previous();
+        Expr value = null;
+        if(!check(SEMICOLON)){
+            value = expression();
+        }
+        consume(SEMICOLON,"Expect \";\" after return value");
+        return new Stmt.Return(keyword,value);
     }
 
     private List<Stmt> block(){
@@ -408,8 +447,39 @@ class Parser{
             Expr right = unary();//right will return primary() in case of no more unary operators
             return new Expr.Unary(operator,right); 
         }
-        return primary();
+        return call();
     }
+
+    private Expr call(){
+        Expr expr = primary();
+        while(match(LEFT_PAREN)){
+            expr = patchCall(expr);
+        }
+        return expr;
+    }
+
+    private Expr patchCall(Expr callee){
+        List<Expr> arguments = new ArrayList<>();
+        int args = 0;
+        if(!check(RIGHT_PAREN)){
+            do{ 
+                arguments.add(ternary());
+                if(++args > 255){
+                    error(peek(),"Can't have more than 255 arguments ");
+                }
+                // we don't call expression() as it would call comma() which 
+                // would consume all commmas leading to only one argument being passed
+                //to the function  
+                //this also means than any operator with lower precedence than the comma operator will not be evaluated
+                //i *could* try to allow users to pass assignment expressions to function calls but that would be too 
+                //uhh *ugly* . idk what other word to use .
+            }
+            while(match(COMMA));
+        } 
+        Token paren = consume(RIGHT_PAREN,"Expect \")\" after function call");
+        return new Expr.Call(callee,paren,arguments);       
+    }
+
     //grouping just starts a new Expr node for the code inside parenthesis
     private Expr primary(){
         if(match(FALSE)) return new Expr.Literal(false);
@@ -419,7 +489,6 @@ class Parser{
         if(match(NUMBER,STRING)){
             return new Expr.Literal(previous().literal);
         }
-
         if(match(LEFT_PAREN)){
             Expr expr = expression();
             consume(RIGHT_PAREN,"Expected a ')' after expression");

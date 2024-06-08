@@ -1,12 +1,8 @@
-
-if(false){
-    print "if";
+var a = clock();
+var b = "str";
+for(var a = 1;a<11;a=a+1){
+    print b;
+    b = b+a;
 }
-
-else if (false){
-    print "else if";
-}
-
-else{
-    print "else";
-}
+print a;
+print clock() - a;

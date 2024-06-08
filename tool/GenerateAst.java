@@ -20,11 +20,15 @@ public class GenerateAst{
       "Ternary  : Expr condition, Expr if_branch, Expr else_branch",
       "Variable : Token identifier",
       "Assign   : Token name, Expr value",
-      "Logical  : Expr left, Token operator, Expr right"
+      "Logical  : Expr left, Token operator, Expr right",
+      "Call     : Expr callee, Token paren, List<Expr> arguments"  
     ));
        defineAst(outputDir,"Stmt",Arrays.asList(
         "If : Expr condition , Stmt then_branch , Stmt else_branch",
-        "while : Expr condition, Stmt statement",
+        "Return     : Token keyword, Expr value",
+        "Function   : Token name, List<Token> params," +
+                  " List<Stmt> body",
+        "While : Expr condition, Stmt statement",
         "Expression : Expr expression",
         "Print : Expr expression",
         "Var : Token name, Expr initializer",
