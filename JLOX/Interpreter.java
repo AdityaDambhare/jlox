@@ -60,6 +60,11 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         catch(RunTimeError error){
             Lox.runtimeError(error);//print error but don't close the shell
         }
+        catch(Return error){
+            Lox.runtimeError(
+                new RunTimeError(error.position,"return statement outside function call")
+            );
+        }
     }
 
     String interpret(Expr expr){
@@ -69,6 +74,12 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         }
         catch(RunTimeError error){
             Lox.runtimeError(error);
+            return null;
+        }
+        catch(Return error){
+            Lox.runtimeError(
+                new RunTimeError(error.position,"return statement outside function call")
+            );
             return null;
         }
     }
@@ -140,7 +151,7 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
     public Void visitReturnStmt(Stmt.Return stmt){
         Object value  = null;
         if(stmt.value!=null) value = evaluate(stmt.value);
-        throw new Return(value);//we unwind all the way back to call() with this where we catch the exception and return the value 
+        throw new Return(value,stmt.keyword);//we unwind all the way back to call() with this where we catch the exception and return the value 
     }
     @Override
     public Object visitAssignExpr(Expr.Assign expr){
