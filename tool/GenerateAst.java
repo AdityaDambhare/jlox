@@ -21,13 +21,13 @@ public class GenerateAst{
       "Variable : Token identifier",
       "Assign   : Token name, Expr value",
       "Logical  : Expr left, Token operator, Expr right",
+      "Function : List<Token> params, List<Stmt> body",
       "Call     : Expr callee, Token paren, List<Expr> arguments"  
     ));
        defineAst(outputDir,"Stmt",Arrays.asList(
         "If : Expr condition , Stmt then_branch , Stmt else_branch",
         "Return     : Token keyword, Expr value",
-        "Function   : Token name, List<Token> params," +
-                  " List<Stmt> body",
+        "Function   : Token name, Expr.Function function", 
         "While : Expr condition, Stmt statement",
         "Expression : Expr expression",
         "Print : Expr expression",

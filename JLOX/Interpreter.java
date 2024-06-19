@@ -143,7 +143,8 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt){
-        LoxFunction function = new LoxFunction(stmt,environment);
+        String name = stmt.name.lexeme;
+        LoxFunction function = new LoxFunction(name,stmt.function,environment);
         environment.define(stmt.name.lexeme,function);
         return null;
     }
@@ -221,6 +222,11 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
     @Override
     public Object visitVariableExpr(Expr.Variable expr){
         return environment.get(expr.identifier);
+    }
+
+    @Override
+    public Object visitFunctionExpr(Expr.Function expr){
+        return new LoxFunction(null,expr,environment);
     }
 
     @Override
@@ -309,9 +315,17 @@ class Interpreter implements Expr.Visitor<Object>,Stmt.Visitor<Void>{//statement
         if(arguments.size() != function.arity()){
             throw new RunTimeError(expr.paren,"Expected " + function.arity() +" arguments but got "+arguments.size());
         }
-
-        return function.call(this,arguments);
+        try{
+            return function.call(this,arguments);
+        }
+        catch(RunTimeError err){
+            if(err.token == null){
+                err.token = expr.paren;
+            }
+            throw err;
+        }
     }
+    
 
     //helper methods
     

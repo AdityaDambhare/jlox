@@ -128,9 +128,17 @@ class Parser{
         return peek().type == type;
     }
 
+    private boolean checkNext(TokenType tokenType) {
+        if (isAtEnd()) return false;
+        if (tokens.get(current + 1).type == EOF) return false;
+        return tokens.get(current + 1).type == tokenType;
+    }
+
     private Token peek(){
         return tokens.get(current);
     }
+
+   
 
     private boolean isAtEnd(){
         return peek().type == TokenType.EOF;
@@ -153,7 +161,8 @@ class Parser{
         if(match(VAR)){
             return var_declaration();
         }
-        if(match(FUN)){
+        if(check(FUN)&&checkNext(IDENTIFIER)){
+            advance();
             return function("function");
         }
         return statement();
@@ -180,21 +189,8 @@ class Parser{
 
     private Stmt.Function function(String kind){//weird parameter i know. 
         Token name = consume(IDENTIFIER,"Expect "+kind+" name.");  
-        consume(LEFT_PAREN,"Expect \"(\" after "+kind+" name.");
-        List<Token> parameters = new ArrayList<>();
-        if(!check(RIGHT_PAREN)){
-            do{
-                if(parameters.size()>=255){
-                    error(peek(),"Can't have more than 255 parameters");
-                }
-                parameters.add(consume(IDENTIFIER,"Expect parameter name."));
-            }
-            while(match(COMMA));
-        }
-        consume(RIGHT_PAREN,"Expect \")\" after parameters.");
-        consume(LEFT_BRACE,"Expect \"{\" before "+kind+" body.");
-        List<Stmt> body = block();
-        return new Stmt.Function(name,parameters,body);
+        Expr.Function body = function_expression(kind);
+        return new Stmt.Function(name,body);
     }
 
     private Stmt statement(){
@@ -450,6 +446,26 @@ class Parser{
         return call();
     }
 
+    private Expr.Function function_expression(String kind){
+        consume(LEFT_PAREN,"Expect '(' after function name");
+        List<Token> parameters = new ArrayList<>();
+        if(!check
+        (RIGHT_PAREN)){
+            do{
+                if(parameters.size()>=255){
+                    error(peek(),"Can't have more than 255 parameters");
+                }
+                parameters.add(consume(IDENTIFIER,"Expect parameter name"));
+            }
+            while(match(COMMA));
+        }
+        consume(RIGHT_PAREN,"Expect ')' after parameters");
+        consume(LEFT_BRACE,"Expect '{' after function parameters");
+        List<Stmt> body = block();
+       
+        return new Expr.Function(parameters,body);
+    }
+
     private Expr call(){
         Expr expr = primary();
         while(match(LEFT_PAREN)){
@@ -482,6 +498,7 @@ class Parser{
 
     //grouping just starts a new Expr node for the code inside parenthesis
     private Expr primary(){
+        if(match(FUN)) return function_expression("function expression");
         if(match(FALSE)) return new Expr.Literal(false);
         if(match(TRUE)) return new Expr.Literal(true);
         if(match(NIL))  return new Expr.Literal(null);

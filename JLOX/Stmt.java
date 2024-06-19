@@ -42,14 +42,12 @@ static class Return extends Stmt{
     }
 }
 static class Function extends Stmt{
-    Function(Token name, List<Token> params, List<Stmt> body) {
+    Function(Token name, Expr.Function function) {
       this.name = name;
-      this.params = params;
-      this.body = body;
+      this.function = function;
  }
     final Token name;
-    final List<Token> params;
-    final List<Stmt> body;
+    final Expr.Function function;
 
     @Override
     <R> R accept(Visitor<R> visitor) {

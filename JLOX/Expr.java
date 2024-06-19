@@ -12,6 +12,7 @@ abstract class Expr {
  R visitVariableExpr(Variable expr);
  R visitAssignExpr(Assign expr);
  R visitLogicalExpr(Logical expr);
+ R visitFunctionExpr(Function expr);
  R visitCallExpr(Call expr);
 }
 static class Binary extends Expr{
@@ -116,6 +117,19 @@ static class Logical extends Expr{
     @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitLogicalExpr(this);
+    }
+}
+static class Function extends Expr{
+    Function(List<Token> params, List<Stmt> body) {
+      this.params = params;
+      this.body = body;
+ }
+    final List<Token> params;
+    final List<Stmt> body;
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitFunctionExpr(this);
     }
 }
 static class Call extends Expr{
