@@ -61,6 +61,9 @@ public class Lox{
       if (syntax instanceof List) {
      // System.out.println(new RpnPrinter().print((List<Stmt>)syntax));
      // System.out.println(new AstPrinter().print((List<Stmt>)syntax));
+      Resolver resolver = new Resolver(interpreter);
+      resolver.resolve((List<Stmt>)syntax);
+      if(hadError) continue;
       interpreter.interpret((List<Stmt>)syntax);
       } 
       else if (syntax instanceof Expr) 
@@ -89,6 +92,9 @@ public class Lox{
     Parser parser = new Parser(tokens);
     List<Stmt> statements = parser.parse();
 
+    if(hadError) return;
+    Resolver resolver = new Resolver(interpreter);
+    resolver.resolve(statements);
     if(hadError) return;
     //System.out.println(new RpnPrinter().print(statements));
     //System.out.println(new AstPrinter().print(statements));
