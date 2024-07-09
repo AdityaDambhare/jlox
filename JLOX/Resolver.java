@@ -9,12 +9,19 @@ class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
     private final Interpreter interpreter;
     private final Stack< Map<String,Boolean> > scopes = new Stack<>();
     private FunctionType currentfunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
     Resolver(Interpreter interpreter){
         this.interpreter = interpreter;
     }
     private enum FunctionType{
         NONE,
-        FUNCTION
+        FUNCTION,
+        INITIALIZER,
+        METHOD
+    }
+    private enum ClassType{
+        NONE,
+        CLASS
     }
 
 private void resolve(Expr expr){
@@ -83,6 +90,34 @@ public Void visitExpressionStmt(Stmt.Expression stmt){
 }
 
 @Override
+public Void visitClassStmt(Stmt.Class stmt){
+    ClassType enclosing = currentClass;
+    currentClass = ClassType.CLASS;
+    declare(stmt.name);
+    define(stmt.name);  
+    beginScope();
+    scopes.peek().put("this",true);
+    for(Stmt.Function function : stmt.methods){
+        FunctionType declaration = FunctionType.METHOD;
+        if (function.name.lexeme.equals("init")){
+            declaration = FunctionType.INITIALIZER;
+        }
+        resolveFunction(function.function,declaration);
+    }
+    endScope();
+    currentClass = enclosing;
+    return null;
+}
+@Override
+public Void visitThisExpr(Expr.This expr){
+    if(currentClass == ClassType.NONE){
+        Lox.error(expr.keyword,"Can't use 'this' outside of a class");
+        return null;
+    }
+    resolveLocal(expr,expr.keyword);
+    return null;
+}
+@Override
 public Void visitPrintStmt(Stmt.Print stmt){
     resolve(stmt.expression);
     return null;
@@ -123,11 +158,17 @@ public Void visitFunctionStmt(Stmt.Function stmt){
 
 @Override
 public Void visitReturnStmt(Stmt.Return stmt){
-    if(currentfunction!=FunctionType.FUNCTION){
+    
+
+    if(currentfunction!=FunctionType.FUNCTION && currentfunction!=FunctionType.METHOD && currentfunction!=FunctionType.INITIALIZER){
         Lox.error(stmt.keyword,"Can't return from top-level code");
     }
 
     if(stmt.value != null){
+        if(currentfunction == FunctionType.INITIALIZER)
+        {
+        Lox.error(stmt.keyword,"Can't return a value from an initializer");
+        }
         resolve(stmt.value);
     }
     return null;
@@ -162,7 +203,12 @@ public Void visitAssignExpr(Expr.Assign expr){
     resolveLocal(expr,expr.name);
     return null;
 }
-
+@Override
+public Void visitSetExpr(Expr.Set expr){
+    resolve(expr.value);
+    resolve(expr.object);
+    return null;
+}
 @Override
 public Void visitTernaryExpr(Expr.Ternary expr){
     resolve(expr.condition);
@@ -186,7 +232,11 @@ public Void visitCallExpr(Expr.Call expr){
     }
     return null;
 }
-
+@Override
+public Void visitGetExpr(Expr.Get expr){
+    resolve(expr.object);
+    return null;
+}
 @Override
 public Void visitGroupingExpr(Expr.Grouping expr){
     resolve(expr.expression);

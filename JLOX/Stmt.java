@@ -12,6 +12,7 @@ abstract class Stmt {
  R visitPrintStmt(Print stmt);
  R visitVarStmt(Var stmt);
  R visitBlockStmt(Block stmt);
+ R visitClassStmt(Class stmt);
 }
 static class If extends Stmt{
     If(Expr condition , Stmt then_branch , Stmt else_branch) {
@@ -111,6 +112,19 @@ static class Block extends Stmt{
     @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitBlockStmt(this);
+    }
+}
+static class Class extends Stmt{
+    Class(List<Stmt.Function> methods, Token name) {
+      this.methods = methods;
+      this.name = name;
+ }
+    final List<Stmt.Function> methods;
+    final Token name;
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitClassStmt(this);
     }
 }
 

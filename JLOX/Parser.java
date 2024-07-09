@@ -161,6 +161,9 @@ class Parser{
         if(match(VAR)){
             return var_declaration();
         }
+        if(match(CLASS)){
+            return class_declaration();
+        }
         if(check(FUN)&&checkNext(IDENTIFIER)){
             advance();
             return function("function");
@@ -173,6 +176,17 @@ class Parser{
             synchronize();
             return null;
         }
+    }
+
+    private Stmt class_declaration(){
+        Token name = consume(IDENTIFIER,"Expect class name");
+        consume(LEFT_BRACE,"Expect '{' after class name}");
+        List<Stmt.Function> methods = new ArrayList<>();
+        while(!check(RIGHT_BRACE)&&!isAtEnd()){
+            methods.add(function("method"));
+        }
+        consume(RIGHT_BRACE,"Expect '}' after class body");
+        return new Stmt.Class(methods,name);
     }
 
     private Stmt var_declaration(){
@@ -327,6 +341,10 @@ class Parser{
 
         if(match(EQUAL)){
             Token equals = previous();
+            if(expr instanceof Expr.Get){
+                Expr.Get get = (Expr.Get) expr;
+                return new Expr.Set(get.object,get.name,comma());
+            }
             Expr value = comma();
             if(expr instanceof Expr.Variable){
                 Token name = ((Expr.Variable) expr).identifier;
@@ -468,8 +486,15 @@ class Parser{
 
     private Expr call(){
         Expr expr = primary();
-        while(match(LEFT_PAREN)){
-            expr = patchCall(expr);
+        while(true){
+            if(match(LEFT_PAREN)){
+                expr = patchCall(expr);
+            }
+            else if(match(DOT)){
+                Token name = consume(IDENTIFIER,"Expect property name after '.'");
+                expr = new Expr.Get(expr,name);
+            }
+            else break;
         }
         return expr;
     }
@@ -503,6 +528,7 @@ class Parser{
         if(match(TRUE)) return new Expr.Literal(true);
         if(match(NIL))  return new Expr.Literal(null);
         if(match(IDENTIFIER)) return new Expr.Variable(previous());
+        if(match(THIS)) return new Expr.This(previous());
         if(match(NUMBER,STRING)){
             return new Expr.Literal(previous().literal);
         }
