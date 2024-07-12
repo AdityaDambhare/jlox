@@ -74,7 +74,9 @@ public static void main(String args[]) throws IOException
       Scanner scanner = new Scanner(line);
       
       List<Token> tokens = scanner.ScanTokens();
+      if(hadError) continue;
       if(showtokens){
+        System.out.println("printing tokens");
         for (Token token : tokens) {
           System.out.println(token);
         }
@@ -84,7 +86,10 @@ public static void main(String args[]) throws IOException
       Object syntax = parser.ParseRepl();
       
       if (hadError) continue;
-
+      if(showsyntax){
+        System.out.println("printing syntax");
+        System.out.println(new RpnPrinter().print(syntax));
+      }
       if (syntax instanceof List) {
      // System.out.println(new RpnPrinter().print((List<Stmt>)syntax));
      // System.out.println(new AstPrinter().print((List<Stmt>)syntax));
