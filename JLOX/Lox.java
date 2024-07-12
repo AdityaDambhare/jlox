@@ -16,19 +16,40 @@ public class Lox{
     static boolean showtokens = false;
     static boolean allowedExpression;
     static boolean foundExpression = false;
-    public static void main(String args[]) throws IOException{
-        if(args.length>1){
-            System.out.println("Usage: jlox [script] [flags]");
-            System.out.println("optional flags --showsyntax --showtokens");
-            System.exit(64);
-        }
-        else if (args.length == 1){
-          runFile(args[0]);
-        }
-        else{
-            runPrompt();
+public static void main(String args[]) throws IOException
+{
+    String scriptPath = null;
+    for (String arg : args) {
+        if (!arg.startsWith("--")) {
+            if (scriptPath == null) {
+                scriptPath = arg; // Assume the first non-flag argument is the script path
+            } else {
+                System.out.println("Multiple script files provided. Only one is allowed.");
+                System.exit(64);
+            }
+        } else {
+            switch (arg) {
+                case "--showsyntax":
+                    showsyntax = true;
+                    break;
+                case "--showtokens":
+                    showtokens = true;
+                    break;
+                default:
+                    System.out.println("Unknown flag: " + arg);
+                    System.exit(64);
+            }
         }
     }
+
+    if (scriptPath != null) {
+        runFile(scriptPath);
+    } else {
+        runPrompt();
+        System.out.println("Usage: jlox [script] [flags]");
+        System.out.println("optional flags --showsyntax --showtokens");
+    }
+}
 
     private static void runFile(String path ) throws IOException{
         byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -51,7 +72,13 @@ public class Lox{
         break;
       }
       Scanner scanner = new Scanner(line);
+      
       List<Token> tokens = scanner.ScanTokens();
+      if(showtokens){
+        for (Token token : tokens) {
+          System.out.println(token);
+        }
+      }
 
       Parser parser = new Parser(tokens);
       Object syntax = parser.ParseRepl();
