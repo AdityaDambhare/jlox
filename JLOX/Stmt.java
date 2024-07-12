@@ -115,11 +115,13 @@ static class Block extends Stmt{
     }
 }
 static class Class extends Stmt{
-    Class(List<Stmt.Function> methods, Token name) {
+    Class(List<Stmt.Function> methods, Expr.Variable superclass , Token name) {
       this.methods = methods;
+      this.superclass = superclass;
       this.name = name;
  }
     final List<Stmt.Function> methods;
+    final Expr.Variable superclass ;
     final Token name;
 
     @Override
