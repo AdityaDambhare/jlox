@@ -87,8 +87,10 @@ public static void main(String args[]) throws IOException
       
       if (hadError) continue;
       if(showsyntax){
-        System.out.println("printing syntax");
+        System.out.println("printing syntax in reverse polish notation");
         System.out.println(new RpnPrinter().print(syntax));
+        System.out.println("printing syntax parenthesized");
+        System.out.println(new AstPrinter().print(syntax));
       }
       if (syntax instanceof List) {
      // System.out.println(new RpnPrinter().print((List<Stmt>)syntax));
@@ -115,16 +117,23 @@ public static void main(String args[]) throws IOException
     private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.ScanTokens();
-   
+   if(showtokens){
+      System.out.println("printing tokens");
     for (Token token : tokens) {
-      if(!showtokens) break;
       System.out.println(token);
     }
+   }
 
     Parser parser = new Parser(tokens);
     List<Stmt> statements = parser.parse();
 
     if(hadError) return;
+    if(showsyntax){
+      System.out.println("printing syntax in reverse polish notation");
+      System.out.println(new RpnPrinter().print(statements));
+      System.out.println("printing syntax parenthesized");
+      System.out.println(new AstPrinter().print(statements));
+    }
     Resolver resolver = new Resolver(interpreter);
     resolver.resolve(statements);
     if(hadError) return;

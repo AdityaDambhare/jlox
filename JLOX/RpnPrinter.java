@@ -6,7 +6,8 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
      
     private  enum FunctionType{
         NONE,
-        METHOD
+        METHOD,
+        Function
     };
     private FunctionType currentFunction = FunctionType.NONE;
     public String print(Expr expr){
@@ -46,16 +47,21 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
     @Override
     public String visitFunctionStmt(Stmt.Function stmt){
         String Function = stmt.name.lexeme ;
+        FunctionType last = currentFunction;
         if(currentFunction!=FunctionType.METHOD){
+            currentFunction = FunctionType.Function;
             Function  = "fun "+ Function;
         }
         Function +=  stmt.function.accept(this);
+        currentFunction = last;
         return Function;
     }
     @Override
     public String visitFunctionExpr(Expr.Function expr){
         String Function = "( ";
+        
         if(currentFunction==FunctionType.NONE){
+            
             Function  = "fun "+ Function;
         }
         for(int i = 0; i<expr.params.size();i++){
@@ -65,7 +71,8 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
             }
         }
         Function += " ) \n";
-        Function += print(expr.body);
+        Function += "{\n"+print(expr.body)+"\n}";
+       
         return Function;
     }
     @Override
@@ -82,7 +89,7 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
             If += "("+stmt.condition.accept(this) + ") then \n" + stmt.then_branch.accept(this) + " \nelse \n" + stmt.else_branch.accept(this);
         }
         else{
-            If += "("+stmt.condition.accept(this) + " then \n" + stmt.then_branch.accept(this);
+            If += "("+stmt.condition.accept(this) + ") then \n" + stmt.then_branch.accept(this);
         }
         return If;
     }
@@ -125,7 +132,7 @@ class RpnPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
 
     @Override
     public String visitAssignExpr(Expr.Assign expr){
-        return  expr.value.accept(this)+ " " + expr.name.lexeme + " = ";
+        return  expr.name.lexeme + " = " + expr.value.accept(this);
     }
 
     @Override

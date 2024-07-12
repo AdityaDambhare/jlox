@@ -2,7 +2,23 @@ package jlox;
 import java.util.List;
 
 class AstPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
-{
+{   private  enum FunctionType{
+        NONE,
+        METHOD,
+        FUNCTION
+    };
+    private FunctionType currentFunction = FunctionType.NONE;
+
+    public String print(Object object){
+        if(object instanceof Expr){
+            return print((Expr) object);
+        }
+        if(object instanceof List){
+            return print((List<Stmt>) object);
+        }
+        return object.toString();
+    }
+
     public String print(Expr expr){
         return expr.accept(this);
     }
@@ -14,14 +30,70 @@ class AstPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
         }
         return builder.toString();
     }
-    @Override 
+@Override
+    public String visitClassStmt(Stmt.Class stmt){
+        String Class = "class " + stmt.name.lexeme ;
+        FunctionType last = currentFunction;
+        currentFunction = FunctionType.METHOD;
+        if(stmt.superclass!=null){
+            Class += " < " + stmt.superclass.accept(this) + " ";
+        }
+        Class += "{ \n";
+        for(Stmt.Function method:stmt.methods){
+            Class += method.accept(this) + "\n";
+        }
+        currentFunction = last;
+        return Class + "\n}";
+    }
+    @Override
+    public String visitFunctionStmt(Stmt.Function stmt){
+        String Function = stmt.name.lexeme ;
+        FunctionType last = currentFunction;
+        if(currentFunction!=FunctionType.METHOD){
+            currentFunction = FunctionType.FUNCTION;
+            Function  = "fun "+ Function;
+        }
+        Function +=  stmt.function.accept(this);
+        currentFunction = last;
+        return Function;
+    }
+    @Override
+    public String visitFunctionExpr(Expr.Function expr){
+        String Function = "( ";
+        if(currentFunction==FunctionType.NONE){
+            Function  = "fun "+ Function;
+        }
+        for(int i = 0; i<expr.params.size();i++){
+            Function += expr.params.get(i).lexeme;
+            if(i<expr.params.size()-1){
+                Function += ", ";
+            }
+        }
+        Function += " ) \n";
+        Function += "{\n"+print(expr.body)+"\n}";
+        return Function;
+    }
+    @Override
+    public String visitReturnStmt(Stmt.Return stmt){
+        if(stmt.value == null){
+            return "return ;";
+        }
+        return "return "+stmt.value.accept(this) + " ;";
+    }
+    @Override
     public String visitIfStmt(Stmt.If stmt){
-        String else_branch = (stmt.else_branch==null)?(""):(" else " + stmt.else_branch.accept(this));
-        return "(if " + stmt.condition.accept(this) + " " + stmt.then_branch.accept(this) + else_branch + " )";
+        String If = "if ";
+        if(stmt.else_branch != null){
+            If += "("+stmt.condition.accept(this) + ") then \n" + stmt.then_branch.accept(this) + " \nelse \n" + stmt.else_branch.accept(this);
+        }
+        else{
+            If += "("+stmt.condition.accept(this) + ") then \n" + stmt.then_branch.accept(this);
+        }
+        return If;
     }
     @Override
     public String visitWhileStmt(Stmt.While stmt){
-        return "( while " + "(" + stmt.condition.accept(this) + ") "  + stmt.statement.accept(this) + ")";
+        return  "While (" + stmt.condition.accept(this) + ") " + stmt.statement.accept(this);
     }
     @Override
     public String visitExpressionStmt(Stmt.Expression stmt)
@@ -91,7 +163,30 @@ class AstPrinter implements Expr.Visitor<String>,Stmt.Visitor<String>
     public String visitTernaryExpr(Expr.Ternary expr){
         return "( ? "+expr.condition.accept(this)+" "+Parenthisize(":",expr.if_branch,expr.else_branch) + " )"; 
     }
-
+        @Override
+    public String visitThisExpr(Expr.This expr){
+        return "this";
+    }
+    @Override
+    public String visitSuperExpr(Expr.Super expr){
+        return "super." + expr.method.lexeme;
+    }
+    @Override 
+    public String visitGetExpr(Expr.Get expr){
+        return expr.object.accept(this) + "." + expr.name.lexeme;
+    }
+    @Override
+    public String visitSetExpr(Expr.Set expr){
+        return expr.object.accept(this) + "." + expr.name.lexeme + " = " + expr.value.accept(this);
+    }
+    @Override
+    public String visitCallExpr(Expr.Call expr){
+        String call = expr.callee.accept(this) + " ( ";
+        for(Expr argument:expr.arguments){
+            call += argument.accept(this) + " ";
+        }
+        return call + " )";
+    }
     private String Parenthisize(String name,Expr... exprs){
         StringBuilder builder = new StringBuilder();
         builder.append("(").append(name);
