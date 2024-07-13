@@ -7,24 +7,30 @@ class LoxFunction implements LoxCallable{
     private final Expr.Function declaration;
     private final Environment closure;
     private boolean isInitializer;
-    LoxFunction(String name,Expr.Function declaration,Environment closure,boolean isInitializer){
+    private boolean isGetter;
+    LoxFunction(String name,Expr.Function declaration,Environment closure,boolean isInitializer,boolean isGetter){
         this.name = name;
         this.closure = closure;
         this.declaration = declaration;
         this.isInitializer = isInitializer;
+        this.isGetter = isGetter;
     }
 
     LoxFunction bind(LoxInstance instance){
         Environment environment = new Environment(closure);
         environment.define("this",instance);
-        return new LoxFunction(this.name,declaration,environment,isInitializer);
+        return new LoxFunction(this.name,declaration,environment,isInitializer,isGetter);
     }
-
+    public boolean isGetter(){
+        return isGetter;
+    }
     @Override
     public Object call(Interpreter interpreter,List<Object> arguments){
         Environment environment = new Environment(closure);
-        for(int i = 0;i<declaration.params.size();i++){
-            environment.define(declaration.params.get(i).lexeme,arguments.get(i));
+        if(!isGetter){
+            for(int i = 0;i<declaration.params.size();i++){
+                environment.define(declaration.params.get(i).lexeme,arguments.get(i));
+            }
         }
         try{
         interpreter.executeBlock(declaration.body,environment);

@@ -29,9 +29,9 @@ public class GenerateAst{
       "Super    : Token keyword, Token method"
     ));
        defineAst(outputDir,"Stmt",Arrays.asList(
-        "If : Expr condition , Stmt then_branch , Stmt else_branch",
+        "If : Expr condition, Stmt then_branch, Stmt else_branch",
         "Return     : Token keyword, Expr value",
-        "Function   : Token name, Expr.Function function", 
+        "Function   : Token name, Expr.Function function, String kind", 
         "While : Expr condition, Stmt statement",
         "Expression : Expr expression",
         "Print : Expr expression",

@@ -150,7 +150,7 @@ import java.util.HashMap;
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt){
         String name = stmt.name.lexeme;
-        LoxFunction function = new LoxFunction(name,stmt.function,environment,false);
+        LoxFunction function = new LoxFunction(name,stmt.function,environment,false,stmt.kind.equals("getter"));
         environment.define(stmt.name.lexeme,function);
         return null;
     }
@@ -199,7 +199,7 @@ import java.util.HashMap;
 
         Map<String,LoxFunction> methods = new HashMap<>();
         for(Stmt.Function method:stmt.methods){
-            LoxFunction function = new LoxFunction(method.name.lexeme,method.function,this.environment,method.name.lexeme.equals("init"));
+            LoxFunction function = new LoxFunction(method.name.lexeme,method.function,this.environment,method.name.lexeme.equals("init"),method.kind.equals("getter"));
             methods.put(method.name.lexeme,function);
         }
 
@@ -305,7 +305,7 @@ import java.util.HashMap;
 
     @Override
     public Object visitFunctionExpr(Expr.Function expr){
-        return new LoxFunction(null,expr,environment,false);
+        return new LoxFunction(null,expr,environment,false,false);
     }
 
     @Override
@@ -379,7 +379,11 @@ import java.util.HashMap;
     public Object visitGetExpr(Expr.Get expr){
         Object object = evaluate(expr.object);
         if ( object instanceof LoxInstance){
-            return ((LoxInstance)object).get(expr.name);
+            Object val = ((LoxInstance)object).get(expr.name);
+            if(val instanceof  LoxFunction && ((LoxFunction)val).isGetter()){
+                return ((LoxFunction)val).call(this,new ArrayList<>());
+            }
+            return val;
         }
         throw new RunTimeError(expr.name,"Only instances have properties");
     }

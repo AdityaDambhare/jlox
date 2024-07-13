@@ -17,6 +17,7 @@ class Resolver implements Expr.Visitor<Void>,Stmt.Visitor<Void>{
         NONE,
         FUNCTION,
         INITIALIZER,
+        GETTER,
         METHOD
     }
     private enum ClassType{
@@ -52,9 +53,11 @@ private void resolveFunction(Expr.Function function,FunctionType type){
     FunctionType enclosing = currentfunction;
     currentfunction = type;
     beginScope();
+    if(type != FunctionType.GETTER){
     for(Token param:function.params){
         declare(param);
         define(param);
+    }
     }
     resolve(function.body);
     endScope();
@@ -113,9 +116,13 @@ public Void visitClassStmt(Stmt.Class stmt){
     scopes.peek().put("this",true);
     for(Stmt.Function function : stmt.methods){
         FunctionType declaration = FunctionType.METHOD;
+        if(function.kind.equals("getter")){
+            declaration = FunctionType.GETTER;
+        }
         if (function.name.lexeme.equals("init")){
             declaration = FunctionType.INITIALIZER;
         }
+
         resolveFunction(function.function,declaration);
     }
     endScope();
@@ -189,7 +196,7 @@ public Void visitFunctionStmt(Stmt.Function stmt){
 public Void visitReturnStmt(Stmt.Return stmt){
     
 
-    if(currentfunction!=FunctionType.FUNCTION && currentfunction!=FunctionType.METHOD && currentfunction!=FunctionType.INITIALIZER){
+    if(currentfunction == FunctionType.NONE){
         Lox.error(stmt.keyword,"Can't return from top-level code");
     }
 

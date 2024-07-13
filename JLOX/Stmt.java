@@ -15,13 +15,13 @@ abstract class Stmt {
  R visitClassStmt(Class stmt);
 }
 static class If extends Stmt{
-    If(Expr condition , Stmt then_branch , Stmt else_branch) {
+    If(Expr condition, Stmt then_branch, Stmt else_branch) {
       this.condition = condition;
       this.then_branch = then_branch;
       this.else_branch = else_branch;
  }
-    final Expr condition ;
-    final Stmt then_branch ;
+    final Expr condition;
+    final Stmt then_branch;
     final Stmt else_branch;
 
     @Override
@@ -43,12 +43,14 @@ static class Return extends Stmt{
     }
 }
 static class Function extends Stmt{
-    Function(Token name, Expr.Function function) {
+    Function(Token name, Expr.Function function, String kind) {
       this.name = name;
       this.function = function;
+      this.kind = kind;
  }
     final Token name;
     final Expr.Function function;
+    final String kind;
 
     @Override
     <R> R accept(Visitor<R> visitor) {

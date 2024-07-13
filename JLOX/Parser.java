@@ -205,11 +205,17 @@ class Parser{
         consume(SEMICOLON,"Expect ; after variable declaration");
         return new Stmt.Var(name,initializer);
     }
-
+    private Stmt.Function getter(Token name){
+        Expr.Function body = function_expression("getter");
+        return new Stmt.Function(name,body,"getter");
+    }
     private Stmt.Function function(String kind){//weird parameter i know. 
-        Token name = consume(IDENTIFIER,"Expect "+kind+" name.");  
+        Token name = consume(IDENTIFIER,"Expect "+kind+" name.");
+        if(kind.equals("method")&&match(LEFT_BRACE)){
+            return getter(name);
+        }
         Expr.Function body = function_expression(kind);
-        return new Stmt.Function(name,body);
+        return new Stmt.Function(name,body,kind);
     }
 
     private Stmt statement(){
@@ -470,8 +476,10 @@ class Parser{
     }
 
     private Expr.Function function_expression(String kind){
-        consume(LEFT_PAREN,"Expect '(' after function name");
+
         List<Token> parameters = new ArrayList<>();
+        if(!kind.equals("getter")){
+        consume(LEFT_PAREN,"Expect '(' after function name");
         if(!check
         (RIGHT_PAREN)){
             do{
@@ -484,6 +492,7 @@ class Parser{
         }
         consume(RIGHT_PAREN,"Expect ')' after parameters");
         consume(LEFT_BRACE,"Expect '{' after function parameters");
+        }
         List<Stmt> body = block();
        
         return new Expr.Function(parameters,body);
